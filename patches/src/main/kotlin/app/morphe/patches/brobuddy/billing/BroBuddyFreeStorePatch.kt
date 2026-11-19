@@ -113,6 +113,9 @@ val broBuddyFreeStorePatch = bytecodePatch(
         )
 
         val launchSmali = """
+            move-object/from16 v10, p0
+            move-object/from16 v11, p2
+
             invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
             move-result-object v0
             const/4 v1, 0x0
@@ -124,7 +127,7 @@ val broBuddyFreeStorePatch = bytecodePatch(
             invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
             move-result-object v0
 
-            invoke-virtual {p2}, Lcom/android/billingclient/api/BillingFlowParams;->zzj()Ljava/util/ArrayList;
+            invoke-virtual {v11}, Lcom/android/billingclient/api/BillingFlowParams;->zzj()Ljava/util/ArrayList;
             move-result-object v1
             if-eqz v1, :try_product_details
             invoke-virtual {v1}, Ljava/util/ArrayList;->size()I
@@ -139,7 +142,7 @@ val broBuddyFreeStorePatch = bytecodePatch(
             goto :sku_done
 
             :try_product_details
-            invoke-virtual {p2}, Lcom/android/billingclient/api/BillingFlowParams;->zzk()Ljava/util/List;
+            invoke-virtual {v11}, Lcom/android/billingclient/api/BillingFlowParams;->zzk()Ljava/util/List;
             move-result-object v1
             if-eqz v1, :try_sku_fallback
             invoke-interface {v1}, Ljava/util/List;->size()I
@@ -176,7 +179,7 @@ val broBuddyFreeStorePatch = bytecodePatch(
             new-instance v8, Lcom/android/billingclient/api/Purchase;
             invoke-direct {v8, v6, v7}, Lcom/android/billingclient/api/Purchase;-><init>(Ljava/lang/String;Ljava/lang/String;)V
 
-            iget-object v6, p0, Lcom/android/billingclient/api/BillingClientImpl;->zzf:Lcom/android/billingclient/api/zzs;
+            iget-object v6, v10, Lcom/android/billingclient/api/BillingClientImpl;->zzf:Lcom/android/billingclient/api/zzs;
             if-eqz v6, :deliver_done
             invoke-virtual {v6}, Lcom/android/billingclient/api/zzs;->zzd()Lcom/android/billingclient/api/PurchasesUpdatedListener;
             move-result-object v6
