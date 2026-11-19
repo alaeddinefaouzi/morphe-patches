@@ -1,9 +1,37 @@
 package app.morphe.patches.brobuddy.billing
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+
+private val billingLaunchFingerprint = Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+    name = "launchBillingFlow",
+    returnType = "Lcom/android/billingclient/api/BillingResult;",
+    parameters = listOf("Landroid/app/Activity;", "Lcom/android/billingclient/api/BillingFlowParams;"),
+)
+
+private val billingAcknowledgeFingerprint = Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+    name = "acknowledgePurchase",
+    returnType = "V",
+    parameters = listOf("Lcom/android/billingclient/api/AcknowledgePurchaseParams;", "Lcom/android/billingclient/api/AcknowledgePurchaseResponseListener;"),
+)
+
+private val billingConsumeFingerprint = Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+    name = "consumeAsync",
+    returnType = "V",
+    parameters = listOf("Lcom/android/billingclient/api/ConsumeParams;", "Lcom/android/billingclient/api/ConsumeResponseListener;"),
+)
+
+private val billingQueryPurchasesFingerprint = Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+    name = "queryPurchasesAsync",
+    returnType = "V",
+    parameters = listOf("Lcom/android/billingclient/api/QueryPurchasesParams;", "Lcom/android/billingclient/api/PurchasesResponseListener;"),
+)
 
 @Suppress("unused")
 val broBuddyFreeStorePatch = bytecodePatch(
@@ -15,25 +43,18 @@ val broBuddyFreeStorePatch = bytecodePatch(
     dependsOn(broBuddyNativeIapPatch)
 
     execute {
-        requireExactlyOne(BillingClientImplLaunchBillingFlowFingerprint.matchAllOrNull(this), "launchBillingFlow")
-        requireExactlyOne(BillingClientImplAcknowledgePurchaseFingerprint.matchAllOrNull(this), "acknowledgePurchase")
-        requireExactlyOne(BillingClientImplConsumeAsyncFingerprint.matchAllOrNull(this), "consumeAsync")
-        requireExactlyOne(BillingClientImplQueryProductDetailsAsyncFingerprint.matchAllOrNull(this), "queryProductDetailsAsync")
-        requireExactlyOne(BillingClientImplQueryPurchasesAsyncFingerprint.matchAllOrNull(this), "queryPurchasesAsync")
-
-        val ackMethod = BillingClientImplAcknowledgePurchaseFingerprint.getMethod(this)
-        ackMethod.addInstructions(
+        billingAcknowledgeFingerprint.method.addInstructions(
             0,
             """
-                invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
                 const/4 v1, 0x0
-                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
                 const-string v1, "OK"
-                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
-                invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult$Builder;->build()Lcom/android/billingclient/api/BillingResult;
+                invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
                 move-result-object v0
                 if-eqz p2, :ack_done
                 invoke-interface {p2, v0}, Lcom/android/billingclient/api/AcknowledgePurchaseResponseListener;->onAcknowledgePurchaseResponse(Lcom/android/billingclient/api/BillingResult;)V
@@ -42,19 +63,18 @@ val broBuddyFreeStorePatch = bytecodePatch(
             """.trimIndent()
         )
 
-        val consumeMethod = BillingClientImplConsumeAsyncFingerprint.getMethod(this)
-        consumeMethod.addInstructions(
+        billingConsumeFingerprint.method.addInstructions(
             0,
             """
-                invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
                 const/4 v1, 0x0
-                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
                 const-string v1, "OK"
-                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
-                invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult$Builder;->build()Lcom/android/billingclient/api/BillingResult;
+                invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
                 move-result-object v0
                 if-eqz p2, :consume_done
                 if-eqz p1, :call_listener
@@ -70,19 +90,18 @@ val broBuddyFreeStorePatch = bytecodePatch(
             """.trimIndent()
         )
 
-        val queryPurchasesMethod = BillingClientImplQueryPurchasesAsyncFingerprint.getMethod(this)
-        queryPurchasesMethod.addInstructions(
+        billingQueryPurchasesFingerprint.method.addInstructions(
             0,
             """
-                invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
                 const/4 v1, 0x0
-                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
                 const-string v1, "OK"
-                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult$Builder;
+                invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
                 move-result-object v0
-                invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult$Builder;->build()Lcom/android/billingclient/api/BillingResult;
+                invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
                 move-result-object v0
                 if-eqz p2, :qp_done
                 new-instance v1, Ljava/util/ArrayList;
@@ -93,17 +112,16 @@ val broBuddyFreeStorePatch = bytecodePatch(
             """.trimIndent()
         )
 
-        val launchMethod = BillingClientImplLaunchBillingFlowFingerprint.getMethod(this)
         val launchSmali = """
-            invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult$Builder;
+            invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
             move-result-object v0
             const/4 v1, 0x0
-            invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult$Builder;
+            invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
             move-result-object v0
             const-string v1, "OK"
-            invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult$Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult$Builder;
+            invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setDebugMessage(Ljava/lang/String;)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
             move-result-object v0
-            invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult$Builder;->build()Lcom/android/billingclient/api/BillingResult;
+            invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
             move-result-object v0
 
             invoke-virtual {p2}, Lcom/android/billingclient/api/BillingFlowParams;->zzk()Ljava/util/List;
@@ -115,8 +133,8 @@ val broBuddyFreeStorePatch = bytecodePatch(
             const/4 v2, 0x0
             invoke-interface {v1, v2}, Ljava/util/List;->get(I)Ljava/lang/Object;
             move-result-object v2
-            check-cast v2, Lcom/android/billingclient/api/BillingFlowParams$ProductDetailsParams;
-            invoke-virtual {v2}, Lcom/android/billingclient/api/BillingFlowParams$ProductDetailsParams;->zza()Lcom/android/billingclient/api/ProductDetails;
+            check-cast v2, Lcom/android/billingclient/api/BillingFlowParams${'$'}ProductDetailsParams;
+            invoke-virtual {v2}, Lcom/android/billingclient/api/BillingFlowParams${'$'}ProductDetailsParams;->zza()Lcom/android/billingclient/api/ProductDetails;
             move-result-object v2
             invoke-virtual {v2}, Lcom/android/billingclient/api/ProductDetails;->getProductId()Ljava/lang/String;
             move-result-object v2
@@ -135,16 +153,16 @@ val broBuddyFreeStorePatch = bytecodePatch(
             invoke-virtual {v3, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
             const-string v6, "\",\"purchaseToken\":\"morphe-"
             invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            invoke-virtual {v3, v4, v5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+            invoke-virtual {v3, v4, 5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
             const-string v6, "\",\"orderId\":\"GPA."
             invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            invoke-virtual {v3, v4, v5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+            invoke-virtual {v3, v4, 5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
             const-string v6, "\",\"purchaseState\":1,\"products\":[\""
             invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
             invoke-virtual {v3, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
             const-string v6, "\"],\"quantity\":1,\"packageName\":\"com.brobuddy.game\",\"purchaseTime\":"
             invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            invoke-virtual {v3, v4, v5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+            invoke-virtual {v3, v4, 5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
             const-string v6, ",\"acknowledged\":false}"
             invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
             invoke-virtual {v3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
@@ -168,6 +186,6 @@ val broBuddyFreeStorePatch = bytecodePatch(
             return-object v0
         """.trimIndent()
 
-        launchMethod.addInstructionsWithLabels(0, launchSmali)
+        billingLaunchFingerprint.method.addInstructions(0, launchSmali)
     }
 }

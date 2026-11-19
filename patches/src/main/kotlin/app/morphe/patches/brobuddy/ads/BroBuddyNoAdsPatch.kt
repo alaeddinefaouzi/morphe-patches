@@ -1,10 +1,17 @@
 package app.morphe.patches.brobuddy.ads
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
 import java.util.Locale
+
+private val maxInterstitialShowFingerprint = Fingerprint(
+    definingClass = "Lcom/applovin/mediation/unity/MaxUnityAdManager;",
+    name = "showInterstitial",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"),
+)
 
 @Suppress("unused")
 val broBuddyNoAdsPatch = bytecodePatch(
@@ -15,11 +22,6 @@ val broBuddyNoAdsPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY_BROBUDDY)
 
     execute {
-        val showMatches = MaxInterstitialShowFingerprint.matchAllOrNull(this)
-        requireExactlyOne(showMatches, "MaxUnityAdManager.showInterstitial", "BroBuddy No Ads")
-
-        val method = MaxInterstitialShowFingerprint.getMethod(this)
-
         val smali = """
             invoke-direct {p0, p1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->getAd(Ljava/lang/String;)Lcom/applovin/mediation/MaxAd;
             move-result-object v0
@@ -39,9 +41,9 @@ val broBuddyNoAdsPatch = bytecodePatch(
             return-void
         """.trimIndent()
 
-        method.addInstructionsWithLabels(0, smali)
+        maxInterstitialShowFingerprint.method.addInstructions(0, smali)
 
-        val classDef = MaxInterstitialShowFingerprint.getClassDef(this)
+        val classDef = maxInterstitialShowFingerprint.classDef
         for (m in classDef.methods) {
             val nameLower = m.name.lowercase(Locale.ROOT)
             if (nameLower.contains("banner") || nameLower.contains("adview") || nameLower.contains("mrec")) {

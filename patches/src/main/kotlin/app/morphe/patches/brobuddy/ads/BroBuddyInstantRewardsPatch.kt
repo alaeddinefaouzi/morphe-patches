@@ -1,9 +1,23 @@
 package app.morphe.patches.brobuddy.ads
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+
+private val maxRewardedAdReadyFingerprint = Fingerprint(
+    definingClass = "Lcom/applovin/mediation/unity/MaxUnityAdManager;",
+    name = "isRewardedAdReady",
+    returnType = "Z",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
+private val maxRewardedAdShowFingerprint = Fingerprint(
+    definingClass = "Lcom/applovin/mediation/unity/MaxUnityAdManager;",
+    name = "showRewardedAd",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"),
+)
 
 @Suppress("unused")
 val broBuddyInstantRewardsPatch = bytecodePatch(
@@ -14,16 +28,8 @@ val broBuddyInstantRewardsPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY_BROBUDDY)
 
     execute {
-        val readyMatches = MaxRewardedAdReadyFingerprint.matchAllOrNull(this)
-        requireExactlyOne(readyMatches, "MaxUnityAdManager.isRewardedAdReady", "BroBuddy Instant Ad Rewards")
+        maxRewardedAdReadyFingerprint.method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
-        val showMatches = MaxRewardedAdShowFingerprint.matchAllOrNull(this)
-        requireExactlyOne(showMatches, "MaxUnityAdManager.showRewardedAd", "BroBuddy Instant Ad Rewards")
-
-        val readyMethod = MaxRewardedAdReadyFingerprint.getMethod(this)
-        readyMethod.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
-
-        val showMethod = MaxRewardedAdShowFingerprint.getMethod(this)
         val smali = """
             invoke-direct {p0, p1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->getAd(Ljava/lang/String;)Lcom/applovin/mediation/MaxAd;
             move-result-object v0
@@ -54,6 +60,6 @@ val broBuddyInstantRewardsPatch = bytecodePatch(
             return-void
         """.trimIndent()
 
-        showMethod.addInstructionsWithLabels(0, smali)
+        maxRewardedAdShowFingerprint.method.addInstructions(0, smali)
     }
 }
