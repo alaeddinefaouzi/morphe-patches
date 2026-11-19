@@ -1,6 +1,6 @@
-# 🎮 Morphe Game Patches
+# ⚡ Morphe Patches
 
-A curated suite of game patches for the [Morphe](https://morphe.software) Android patching ecosystem.
+A curated suite of patches and quality-of-life enhancements for Android **apps and games**, built for the [Morphe](https://morphe.software) patching ecosystem.
 
 [![Morphe Compatible](https://img.shields.io/badge/Morphe-Compatible-6C5CE7?style=flat-square)](https://morphe.software)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)
@@ -11,7 +11,7 @@ A curated suite of game patches for the [Morphe](https://morphe.software) Androi
 ## 📲 Add to Morphe Manager
 
 ### ⚡ Option 1: One-Click Integration (Recommended)
-On your Android device with **Morphe Manager** installed, click the badge below to add this repository directly as a patch source:
+On your Android device with **Morphe Manager** installed, click the badge below to add this repository directly as a remote patch source:
 
 [![Add to Morphe](https://img.shields.io/badge/Add%20to-Morphe%20Manager-4CAF50?style=for-the-badge&logo=android)](https://morphe.software/add-source?github=alaeddinefaouzi/morphe-patches)
 
@@ -37,7 +37,7 @@ If you prefer offline or manual patching:
 
 ---
 
-## 🕹 Supported Games & Features
+## 📱 Supported Apps & Games
 
 ### 🥊 BroBuddy (`com.brobuddy.game`) — Version 1.0.3
 
@@ -50,41 +50,64 @@ If you prefer offline or manual patching:
 
 ---
 
-## 🚀 How to Build from Source
+## 🧩 Adding New Patches (Apps & Games)
 
-### Prerequisites
-- Java Development Kit (JDK 21 or higher)
+This repository follows the official Morphe patches modular architecture, making it easy to add patches for both regular Android applications and native/Unity games:
 
-### Build Commands
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/alaeddinefaouzi/morphe-patches.git
-   cd morphe-patches
-   ```
-2. Build the patch bundle:
-   ```bash
-   ./gradlew :patches:buildAndroid
-   ```
-3. Generate the patches list manifest:
-   ```bash
-   ./gradlew generatePatchesList
-   ```
-4. The output `.mpp` bundle is created under `patches/build/libs/`.
+### 1. Register App Compatibility
+Add the target package name, version, and metadata to `patches/src/main/kotlin/app/morphe/patches/shared/Constants.kt`:
+```kotlin
+const val APP_PACKAGE_NAME = "com.example.app"
+const val APP_TARGET_VERSION = "1.0.0"
+
+val COMPATIBILITY_EXAMPLE = Compatibility(
+    name = "Example App",
+    packageName = APP_PACKAGE_NAME,
+    apkFileType = ApkFileType.APK, // or ApkFileType.APKM / XAPK
+    appIconColor = 0x123456,
+    targets = listOf(
+        AppTarget(
+            version = APP_TARGET_VERSION,
+            description = "Download Example App v$APP_TARGET_VERSION from APKMirror",
+        )
+    )
+)
+```
+
+### 2. Implement the Patches
+Create a package for the target application under `patches/src/main/kotlin/app/morphe/patches/<app_name>/`:
+
+* **Standard Android Apps (Smali / Bytecode)**:
+  Use `bytecodePatch` to hook methods, neutralize ads, unlock premium features, or bypass paywalls:
+  ```kotlin
+  val exampleAppUnlockPatch = bytecodePatch(
+      name = "Unlock Premium",
+      description = "Unlocks premium subscription features.",
+  ) {
+      compatibleWith(Constants.COMPATIBILITY_EXAMPLE)
+      execute {
+          targetFingerprint.method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+      }
+  }
+  ```
+
+* **Native / Unity Games (IL2CPP / Native Libraries)**:
+  Use `rawResourcePatch` to patch functions directly in `lib/arm64-v8a/libil2cpp.so` or other shared libraries.
+
+### 3. Build & Test
+```bash
+./gradlew :patches:buildAndroid
+./gradlew generatePatchesList
+```
+The compiled `.mpp` package is output to `patches/build/libs/`.
 
 ---
 
-## 🧩 Adding Future Game Patches
+## 🚀 Automated CI / Releases
 
-This repository follows the official Morphe patches modular architecture:
-
-1. **Bytecode / Smali Hooks**:
-   Create a new package under `patches/src/main/kotlin/app/morphe/patches/<game_name>/` containing your `bytecodePatch` implementations.
-2. **Native IL2CPP Hex Patches**:
-   If the game uses Unity IL2CPP, register pattern replacements inside a `rawResourcePatch` using `hexPatch` targeting `lib/arm64-v8a/libil2cpp.so`.
-3. **Register Target Compatibility**:
-   Add the app's package name and version into `Constants.kt` under `app.morphe.patches.shared`.
-4. **Rebuild**:
-   Run `./gradlew :patches:buildAndroid` to build the new unified `.mpp` bundle.
+This repository includes a fully automated GitHub Actions pipeline (`.github/workflows/release.yml`):
+* Pushing a Git tag (e.g. `v1.1.0`) triggers an automated Gradle build in Ubuntu CI.
+* Compiles the `.mpp` package, generates the manifests, and publishes a new release on GitHub Releases.
 
 ---
 

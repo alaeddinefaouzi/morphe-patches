@@ -2,8 +2,8 @@ group = "app.morphe.patches"
 
 patches {
     about {
-        name = "BroBuddy Patches"
-        description = "Morphe patches for BroBuddy: Free Store, No Ads, Instant Rewards, Native IL2CPP Bypass"
+        name = "Morphe Patches"
+        description = "Curated patches for Android apps and games for use with Morphe."
         source = "https://github.com/alaeddinefaouzi/morphe-patches"
         author = "alaeddinefaouzi"
         contact = "https://github.com/alaeddinefaouzi/morphe-patches/issues"
