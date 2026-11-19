@@ -124,12 +124,27 @@ val broBuddyFreeStorePatch = bytecodePatch(
             invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
             move-result-object v0
 
+            invoke-virtual {p2}, Lcom/android/billingclient/api/BillingFlowParams;->zzj()Ljava/util/ArrayList;
+            move-result-object v1
+            if-eqz v1, :try_product_details
+            invoke-virtual {v1}, Ljava/util/ArrayList;->size()I
+            move-result v2
+            if-lez v2, :try_product_details
+            const/4 v2, 0x0
+            invoke-virtual {v1, v2}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
+            move-result-object v2
+            check-cast v2, Lcom/android/billingclient/api/SkuDetails;
+            invoke-virtual {v2}, Lcom/android/billingclient/api/SkuDetails;->getSku()Ljava/lang/String;
+            move-result-object v2
+            goto :sku_done
+
+            :try_product_details
             invoke-virtual {p2}, Lcom/android/billingclient/api/BillingFlowParams;->zzk()Ljava/util/List;
             move-result-object v1
-            if-eqz v1, :try_sku
+            if-eqz v1, :try_sku_fallback
             invoke-interface {v1}, Ljava/util/List;->size()I
             move-result v2
-            if-lez v2, :try_sku
+            if-lez v2, :try_sku_fallback
             const/4 v2, 0x0
             invoke-interface {v1, v2}, Ljava/util/List;->get(I)Ljava/lang/Object;
             move-result-object v2
@@ -139,32 +154,21 @@ val broBuddyFreeStorePatch = bytecodePatch(
             invoke-virtual {v2}, Lcom/android/billingclient/api/ProductDetails;->getProductId()Ljava/lang/String;
             move-result-object v2
             goto :sku_done
-            :try_sku
+
+            :try_sku_fallback
             const-string v2, "brobuddy_free_iap"
             :sku_done
 
-            invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
-            move-result-wide v4
-
             new-instance v3, Ljava/lang/StringBuilder;
             invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
-            const-string v6, "{\"productId\":\""
-            invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+            const-string v4, "{\"productId\":\""
+            invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
             invoke-virtual {v3, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            const-string v6, "\",\"purchaseToken\":\"morphe-"
-            invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            invoke-virtual {v3, v4, 5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
-            const-string v6, "\",\"orderId\":\"GPA."
-            invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            invoke-virtual {v3, v4, 5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
-            const-string v6, "\",\"purchaseState\":1,\"products\":[\""
-            invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+            const-string v4, "\",\"purchaseToken\":\"morphe-token\",\"orderId\":\"GPA.1234-5678-9012\",\"purchaseState\":1,\"products\":[\""
+            invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
             invoke-virtual {v3, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            const-string v6, "\"],\"quantity\":1,\"packageName\":\"com.brobuddy.game\",\"purchaseTime\":"
-            invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-            invoke-virtual {v3, v4, 5}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
-            const-string v6, ",\"acknowledged\":false}"
-            invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+            const-string v4, "\"],\"quantity\":1,\"packageName\":\"com.brobuddy.game\",\"purchaseTime\":1700000000,\"acknowledged\":false}"
+            invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
             invoke-virtual {v3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
             move-result-object v6
 
