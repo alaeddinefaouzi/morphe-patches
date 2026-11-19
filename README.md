@@ -1,6 +1,8 @@
-# ⚡ Morphe Patches
+# ⚡ @alaeddinefaouzi Patches
 
-A curated suite of patches and quality-of-life enhancements for Android **apps and games**, built for the [Morphe](https://morphe.software) patching ecosystem.
+<img src="patches-bundle.png" width="96" height="96" alt="@alaeddinefaouzi" align="right" />
+
+A curated suite of patches and quality-of-life enhancements for Android **apps and games**, maintained by **@alaeddinefaouzi** for the [Morphe](https://morphe.software) patching ecosystem.
 
 [![Morphe Compatible](https://img.shields.io/badge/Morphe-Compatible-6C5CE7?style=flat-square)](https://morphe.software)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)

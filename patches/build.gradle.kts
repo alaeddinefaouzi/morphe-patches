@@ -2,8 +2,8 @@ group = "app.morphe.patches"
 
 patches {
     about {
-        name = "Morphe Patches"
-        description = "Curated patches for Android apps and games for use with Morphe."
+        name = "@alaeddinefaouzi"
+        description = "Curated patches for Android apps and games by @alaeddinefaouzi."
         source = "https://github.com/alaeddinefaouzi/morphe-patches"
         author = "alaeddinefaouzi"
         contact = "https://github.com/alaeddinefaouzi/morphe-patches/issues"

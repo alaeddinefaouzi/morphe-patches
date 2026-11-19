@@ -36,31 +36,50 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
           chmod +x gradlew
-          ./gradlew :patches:buildAndroid --no-daemon
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Building version $VERSION from tag $GITHUB_REF_NAME"
+          ./gradlew :patches:buildAndroid -Pversion="$VERSION" --no-daemon
           echo "=== Content of patches/build/libs ==="
           ls -la patches/build/libs/ || true
-          find patches/build/libs/ -name "*.mpp" -exec cp {} patches-1.0.0.mpp \; || true
-          ls -la patches-1.0.0.mpp || true
+          find patches/build/libs/ -name "*.mpp" -not -name "*-sources.mpp" -not -name "*-javadoc.mpp" -exec cp {} "patches-${VERSION}.mpp" \; || true
+          ls -la patches-${VERSION}.mpp || true
 
       - name: Generate Patches List
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          ./gradlew generatePatchesList --no-daemon || true
+          VERSION="${GITHUB_REF_NAME#v}"
+          ./gradlew generatePatchesList -Pversion="$VERSION" --no-daemon || true
+
+      - name: Generate patches-bundle.json
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%S")
+          cat <<EOF > patches-bundle.json
+          {
+            "version": "$VERSION",
+            "created_at": "$NOW",
+            "description": "@alaeddinefaouzi - Curated patches for Android apps and games",
+            "download_url": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/patches-${VERSION}.mpp"
+          }
+          EOF
+          echo "Generated patches-bundle.json:"
+          cat patches-bundle.json
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Morphe Patches ${{ github.ref_name }}
+          name: "@alaeddinefaouzi Patches ${{ github.ref_name }}"
           draft: false
           prerelease: false
           generate_release_notes: true
           fail_on_unmatched_files: false
           files: |
-            patches-1.0.0.mpp
+            patches-*.mpp
             patches/build/libs/*.mpp
             patches-bundle.json
+            patches-bundle.png
             patches-list.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
