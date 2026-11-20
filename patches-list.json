@@ -112,7 +112,7 @@
     },
     {
       "name": "Yuka PairIP Anti-Tamper Bypass",
-      "description": "Disables PairIP (Google Play Integrity) signature verification that prevents modified APKs from running. This patch is REQUIRED for the patched Yuka APK to work - without it, the app will show 'Get this app from Play' error on launch.",
+      "description": "Disables PairIP (Google Play Integrity) signature and licensing verification that blocks modified APKs. Fixes the 'Get this app from Play' dialog on launch.",
       "default": true,
       "category": null,
       "compatiblePackages": [
