@@ -22,4 +22,22 @@ object Constants {
             )
         )
     )
+
+    const val YUKA_PACKAGE_NAME = "io.yuka.android"
+    const val YUKA_TARGET_VERSION = "5.9.2"
+
+    val COMPATIBILITY_YUKA = Compatibility(
+        name = "Yuka",
+        packageName = YUKA_PACKAGE_NAME,
+        description = "Yuka - Food & Cosmetic Scanner patch",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x38D06C,
+        targets = listOf(
+            AppTarget(
+                version = YUKA_TARGET_VERSION,
+                isExperimental = false,
+                description = "Yuka - Food & Cosmetic Scanner v5.9.2",
+            )
+        )
+    )
 }
